@@ -1,0 +1,360 @@
+#!/usr/bin/env python
+import time
+import datetime
+import random
+import threading
+
+lastTemp = 60
+
+class Variant:
+	def __init__(self, name):
+		self.name = name
+		self.val = 100
+
+	def getName(self):
+		return self.name
+
+	def getVal(self):
+		return self.val
+
+	def decrement(self, x):
+		self.val -= x
+		self.val = max(self.val, 0)
+
+class LifeThread(threading.Thread):
+	def __init__(self, string, count, name, pause):
+		threading.Thread.__init__(self)
+		self.count = count
+		self.isPrinting = True
+		self.message = string
+		self.name = name
+		self.pause = pause
+		self.first = True
+	def run(self):
+		while self.isPrinting:
+			printLogline("[Human:%s %s] %s" % (self.name, self.message, self.count))
+			self.count += 1
+			if self.message == "Heart" and self.first:
+				time.sleep(.2)
+				self.first = False
+			else:
+				time.sleep(self.pause + random.randrange(0, 1))
+				self.first = True
+	def stopBeat(self):
+		self.isPrinting = False
+	def updatePause(self, num):
+		self.pause = num;
+
+def printTitle():
+	print " _____       _"
+	time.sleep(.15)
+	print "|  __ \     | |"
+	time.sleep(.15)
+	print "| |  | | ___| |__  _   _  __ _   _ __ ___   ___ "
+	time.sleep(.15);
+	print "| |  | |/ _ \\ '_ \\| | | |/ _` | | '_ ` _ \ / _ \\"
+	time.sleep(.15)
+	print "| |__| |  __/ |_) | |_| | (_| | | | | | | |  __/"
+	time.sleep(.15);
+	print "|_____/ \\___|_.__/ \__,_|\\__, | |_| |_| |_|\\___|"
+	time.sleep(.15)
+	print "                          __/ |                 "
+	time.sleep(.15)
+	print "                         |___/    "   
+	print  
+
+def printLogline(message):
+	out = "%s %s" % (datetime.datetime.now(), message)
+	print out
+
+def printRandVariant(variants, decr, name):
+	r = random.randrange(0, len(variants))
+	var = variants[r]
+	if var.getVal() > 150: 
+		decr = abs(decr)
+	if var.getVal() < -50:
+		decr = abs(decr)*-1
+	printVariant(var, decr, name)
+
+def printVariant(variant, decr, name):
+	variant.decrement(decr)
+	string = "[Human:%s %s] %s%%" % (name, variant.getName().upper(), variant.getVal())
+	printLogline(string)
+
+def getNextMeal():
+	time = datetime.datetime.now().time()
+	if time.hour < 9:
+		return "breakfast"
+	elif time.hour < 10:
+		return "brunch"
+	elif time.hour < 13:
+		return "lunch"
+	elif time.hour < 21:
+		return "dinner"
+	else:
+		return "coffee"
+
+def getTomorrow():
+	time = datetime.datetime.now().weekday() + 1
+	if time == 0 or time > 6:
+		return "Monday"
+	elif time == 1:
+		return "Tuesday"
+	elif time == 2:
+		return "Wednesday"
+	elif time == 3:
+		return "Thursday"
+	elif time == 4:
+		return "Friday"
+	elif time == 5:
+		return "Saturday"
+	elif time == 6:
+		return "Sunday"	
+
+def printEmpty(x, pause):
+	i = 0
+	while i < x:
+		print
+		time.sleep(pause)
+		i += 1
+
+def printVarLoop(x, pause, variants, name):
+	i = 0
+	while i < x:
+		randBool = bool(random.getrandbits(1))
+		sign = randBool*-1 + (not randBool)*1
+		decr = sign*random.randrange(1, 40)
+		printRandVariant(variants, decr, name)
+		time.sleep(pause)
+		i += 1
+
+def getRandomEnviron():
+	environLst = ["rain", "wind", "cloudy", "sunny", "grey", "thunder", "lightning"]
+	return environLst[random.randrange(0, len(environLst))]
+
+def fileReader(text):
+	target = open(text)
+	index = random.randrange(1, int(target.readline()))
+	for i, line in enumerate(target):
+		if i == index:
+			target.close()
+			return line.rstrip()
+	target.close()
+	return ""
+
+def randomSpewings(num, name):
+	i = 0
+	while i < num:
+		string = fileReader("adjectives.txt") + " " + fileReader("nouns.txt")
+		printLogline("[Human:%s MIND] %s" % (name, string))
+		time.sleep(random.randrange(1,7))
+		i +=1
+
+def tellTheStory(length, name, breathThread, heartThread):
+	variants = [Variant("health"), Variant("nutrition"), Variant("rest")]
+	human2 = "56x4E8673"
+	human3 = "33x2D7F26"
+	time.sleep(3)   
+	printLogline("[Human:%s sent message to Human:%s] Hey" % (name,human2))  
+	time.sleep(3)
+	printLogline("[Human:%s received message from Human:%s] what's up?" % (name,human2)) 
+	time.sleep(4)
+	printRandVariant(variants, 0, name)
+	time.sleep(3)
+	printLogline("[Human:%s sent message to Human:%s] Want to grab %s?" % (name, human2, getNextMeal()))
+	time.sleep(5)
+	printLogline("[Human:%s received message from Human:%s] I already ate. Maybe %s" % (name, human2, getTomorrow()))
+	time.sleep(1)
+	printLogline("[Human:%s sent message to Human:%s] like tomorrow?" % (name, human2))
+	time.sleep(7)
+	printEmpty(10, .1)
+	printRandVariant(variants, 10, name)
+	time.sleep(2)
+	printEmpty(10, .1)
+	printLogline("[Human:%s MIND] Breathe." % (name))
+	breathThread.updatePause(2.5)
+	heartThread.updatePause(.75)
+	time.sleep(5)
+	printLogline("[Human:%s MIND] tomorrow or next week?" % (name))
+	time.sleep(5)
+	i = 0
+	while i < 5:
+		printLogline("[Human:%s MIND] tomorrow or next week?" % (name))
+		time.sleep(2)
+		i += 1
+	time.sleep(2)
+	printLogline("[Human:%s MIND] if only yesterday." % (name))
+	time.sleep(2)
+	printLogline("[ENVIRON] %s" % (getRandomEnviron()))
+	time.sleep(2)
+	printLogline("[Human:%s MIND] %s" % (name, fileReader("Exclamations.txt")))
+	time.sleep(10)
+	printLogline("[Human:%s NUTRITION] consumed: 1 apple" % (name))
+	breathThread.updatePause(1.5)
+	heartThread.updatePause(.5)
+	time.sleep(2)
+	printVariant(variants[1], -10, name)
+	time.sleep(2)
+	i = 0
+	while i < 10:
+		printLogline("[Human:%s sent message to Human:%s] do you have time to talk?" % (name, human3))
+		time.sleep(8/(i+1))
+		i += 1
+	printLogline("[ENVIRON] %s" % (getRandomEnviron()))
+	time.sleep(2)
+	environVar = getRandomEnviron()
+	if not environVar.endswith("y"):
+		environVar += "y"
+	printLogline("[Human:%s sent message to Human:%s] it's %s" % (name, human3, environVar))
+	time.sleep(2)
+	randomSpewings(3, name)
+	time.sleep(2)
+	printLogline("[Human:%s MIND] Stop." % (name))
+	breathThread.updatePause(.7)
+	heartThread.updatePause(.2)
+	printVarLoop(200, .01, variants, name)
+	time.sleep(2)
+	printLogline("[Human:%s sent message to Human:%s] can you hear me?" % (name, human3))
+	time.sleep(2)
+	printLogline("[Human:%s sent message to Human:%s] I really need" % (name, human3))
+	time.sleep(2)
+
+def printJournal(name, length, breathThread, heartThread):
+	human3 = "33x2D7F26"
+	target = open("journal.txt")
+	lst = []
+	for i, line in enumerate(target):
+		lst.append(line.rstrip())
+	target.close()
+	printLogline("[Human:%s MIND] %s" % (name, lst[0]))
+	time.sleep(4)
+	printLogline("[Human:%s sent message to Human:%s] do you even care?" % (name, human3))
+	time.sleep(2)
+	printLogline("[Human:%s MIND] %s" % (name, lst[0]))
+	time.sleep(2)
+	printLogline("[Human:%s MIND] %s" % (name, lst[0]))
+	time.sleep(1)
+	breathThread.stopBeat()
+	heartThread.stopBeat()
+	breathThread.join()
+	heartThread.join()
+	i = 0
+	while i < 10000:
+		print(lst[0]),
+		time.sleep(.0001)
+		i += 1
+	timer = 0
+	while timer < 20:
+		rand = random.randrange(0, len(lst))
+		i = 0
+		print(lst[rand]),
+		time.sleep(.1)
+		while i < 10000:
+			print(lst[rand]),
+			time.sleep(.0001)
+			i += 1
+		timer += 1
+	i = 0
+	while i < 10000:
+		print(lst[len(lst)-1]),
+		time.sleep(.0001)
+		i += 1
+	if length > 20:
+		target = open("plague")
+		for i, line in enumerate(target):
+			time.sleep(.0001)
+			print(line.rstrip()),
+		print
+		target.close()
+
+
+def printClosingRemarks(name):
+	printEmpty(200, 0)
+	printLogline("[Human:%s received message] ERROR: wrong number" % (name))
+	# time.sleep(2)
+	# printEmpty(200, 0)
+	# print "There are some things better enjoyed in their entirety"
+	time.sleep(2)
+	printEmpty(200, 0)
+	print "An outpouring of something"
+	time.sleep(2)
+	printEmpty(200, 0)
+	print "And me?"
+	time.sleep(2)
+	printEmpty(200, 0)
+	print "Do you understand me now?"
+	time.sleep(2)
+	printEmpty(200, 0)
+	print "It's no use trying to acheive yesterday."
+	time.sleep(2)
+	printEmpty(200, 0)
+	# print "enjoy?" 
+	# time.sleep(2)
+	# printEmpty(200, 0)
+	dotDotDotLoop()
+
+def dotDotDotLoop():
+	i = 0
+	while i < 5:
+		print "Returning control..."
+		time.sleep(.5)
+		printEmpty(200, 0)
+		print "Returning control"
+		time.sleep(.5)
+		printEmpty(200, 0)
+		print "Returning control."
+		time.sleep(.5)
+		printEmpty(200, 0)
+		print "Returning control.."
+		time.sleep(.5)
+		printEmpty(200, 0)
+		i += 1
+	print "Returning control..."
+	time.sleep(.5)
+	printEmpty(200, 0)
+	i = 0
+	while i < 3:
+		print "."
+		time.sleep(.5)
+		printEmpty(200, 0)
+		print ".."
+		time.sleep(.5)
+		printEmpty(200, 0)
+		print "..."
+		time.sleep(.5)
+		printEmpty(200, 0)
+		i += 1
+	i = 0
+	while i < 2:
+		print "."
+		time.sleep(.5)
+		printEmpty(200, 0)
+		print " "
+		time.sleep(.5)
+		printEmpty(200, 0)
+		i += 1
+
+if __name__ == '__main__':
+	try:
+		length = 40#input('How long would you like to experience the piece for (in minutes)? ')
+		print
+		print "~enjoy~"
+		print
+		time.sleep(2)
+		printEmpty(200, 0)
+		printTitle()
+		time.sleep(2)
+		printEmpty(200, 0)
+		time.sleep(2)
+		age = random.randrange(18, 22) 
+		name = "28xFA78A8C"
+		breathThread = LifeThread("Breath", 8409600*age, name, 3)
+		heartThread = LifeThread("Heart", 42048000*age, name, 1)
+		heartThread.start()
+		time.sleep(1.5)
+		breathThread.start()
+		tellTheStory(length, name, breathThread, heartThread)
+		printJournal(name, length, breathThread, heartThread)
+		printClosingRemarks(name)
+	except:
+		printLogline("[ERROR]")
