@@ -6,6 +6,9 @@ import threading
 
 lastTemp = 60
 
+#Variants are classes mean to represent a specific bodily aspect, for example hunger. 
+#They have the following attributes: name of the variant and current numerical value of the variant.
+#Their numerical values can be decremented or incremented using the decrement method.
 class Variant:
 	def __init__(self, name):
 		self.name = name
@@ -21,6 +24,7 @@ class Variant:
 		self.val -= x
 		self.val = max(self.val, 0)
 
+#The LifeThread class manages the constant outpouring of print lines for breathing and heart beats.
 class LifeThread(threading.Thread):
 	def __init__(self, string, count, name, pause):
 		threading.Thread.__init__(self)
@@ -30,7 +34,7 @@ class LifeThread(threading.Thread):
 		self.name = name
 		self.pause = pause
 		self.first = True
-	def run(self):
+	def run(self): #starts thread
 		while self.isPrinting:
 			printLogline("[Human:%s %s] %s" % (self.name, self.message, self.count))
 			self.count += 1
@@ -40,11 +44,12 @@ class LifeThread(threading.Thread):
 			else:
 				time.sleep(self.pause + random.randrange(0, 1))
 				self.first = True
-	def stopBeat(self):
+	def stopBeat(self): #stops the print lines
 		self.isPrinting = False
-	def updatePause(self, num):
+	def updatePause(self, num): #change the amount of time between each print line
 		self.pause = num;
 
+#Prints the title of the piece: Debugme
 def printTitle():
 	print " _____       _"
 	time.sleep(.15)
@@ -63,10 +68,12 @@ def printTitle():
 	print "                         |___/    "   
 	print  
 
+#A helper function that formats a message in a specific logline format and prints it to the terminal
 def printLogline(message):
 	out = "%s %s" % (datetime.datetime.now(), message)
 	print out
 
+#Picks a random variant object and decreases/increases it randomly, then prints it.
 def printRandVariant(variants, decr, name):
 	r = random.randrange(0, len(variants))
 	var = variants[r]
@@ -76,11 +83,13 @@ def printRandVariant(variants, decr, name):
 		decr = abs(decr)*-1
 	printVariant(var, decr, name)
 
+#Prints a given variant to the terminal in a specific format: [Human:name variantName] variantValue
 def printVariant(variant, decr, name):
 	variant.decrement(decr)
 	string = "[Human:%s %s] %s%%" % (name, variant.getName().upper(), variant.getVal())
 	printLogline(string)
 
+#Returns the next meal of the day based on the current time
 def getNextMeal():
 	time = datetime.datetime.now().time()
 	if time.hour < 9:
@@ -94,6 +103,7 @@ def getNextMeal():
 	else:
 		return "coffee"
 
+#Returns the next day of the week based on today
 def getTomorrow():
 	time = datetime.datetime.now().weekday() + 1
 	if time == 0 or time > 6:
@@ -111,6 +121,7 @@ def getTomorrow():
 	elif time == 6:
 		return "Sunday"	
 
+#Prints x number of empty lines, pausing for pause seconds between
 def printEmpty(x, pause):
 	i = 0
 	while i < x:
@@ -118,6 +129,7 @@ def printEmpty(x, pause):
 		time.sleep(pause)
 		i += 1
 
+#Randomly prints x variants, pausing pause amount in between each one
 def printVarLoop(x, pause, variants, name):
 	i = 0
 	while i < x:
@@ -128,10 +140,12 @@ def printVarLoop(x, pause, variants, name):
 		time.sleep(pause)
 		i += 1
 
+#Returns a random environmental string
 def getRandomEnviron():
 	environLst = ["rain", "wind", "cloudy", "sunny", "grey", "thunder", "lightning"]
 	return environLst[random.randrange(0, len(environLst))]
 
+#Reads a random line from a file with name "text", and returns the line
 def fileReader(text):
 	target = open(text)
 	index = random.randrange(1, int(target.readline()))
@@ -142,6 +156,7 @@ def fileReader(text):
 	target.close()
 	return ""
 
+#Prints num lines of semi-randomly generated pairs of words
 def randomSpewings(num, name):
 	i = 0
 	while i < num:
@@ -150,6 +165,7 @@ def randomSpewings(num, name):
 		time.sleep(random.randrange(1,7))
 		i +=1
 
+#This function contains the main storytelling code, printing it to the terminal
 def tellTheStory(length, name, breathThread, heartThread):
 	variants = [Variant("health"), Variant("nutrition"), Variant("rest")]
 	human2 = "56x4E8673"
@@ -219,6 +235,7 @@ def tellTheStory(length, name, breathThread, heartThread):
 	printLogline("[Human:%s sent message to Human:%s] I really need" % (name, human3))
 	time.sleep(2)
 
+#Prints random lines from a journal, finishing by printint the genetic code for the bubonic plague
 def printJournal(name, length, breathThread, heartThread):
 	human3 = "33x2D7F26"
 	target = open("journal.txt")
@@ -288,9 +305,6 @@ def printClosingRemarks(name):
 	print "It's no use trying to acheive yesterday."
 	time.sleep(2)
 	printEmpty(200, 0)
-	# print "enjoy?" 
-	# time.sleep(2)
-	# printEmpty(200, 0)
 	dotDotDotLoop()
 
 def dotDotDotLoop():
